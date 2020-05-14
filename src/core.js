@@ -1,57 +1,19 @@
 /*globals window, global, require*/
+import { generateSecureRandom } from 'react-native-securerandom';
 
 /**
  * CryptoJS core components.
  */
 var CryptoJS = CryptoJS || (function (Math, undefined) {
-
-    var crypto;
-
-    // Native crypto from window (Browser)
-    if (typeof window !== 'undefined' && window.crypto) {
-        crypto = window.crypto;
-    }
-
-    // Native (experimental IE 11) crypto from window (Browser)
-    if (!crypto && typeof window !== 'undefined' && window.msCrypto) {
-        crypto = window.msCrypto;
-    }
-
-    // Native crypto from global (NodeJS)
-    if (!crypto && typeof global !== 'undefined' && global.crypto) {
-        crypto = global.crypto;
-    }
-
-    // Native crypto import via require (NodeJS)
-    if (!crypto && typeof require === 'function') {
-        try {
-            crypto = require('crypto');
-        } catch (err) {}
-    }
-
     /*
      * Cryptographically secure pseudorandom number generator
      *
      * As Math.random() is cryptographically not safe to use
      */
     var cryptoSecureRandomInt = function () {
-        if (crypto) {
-            // Use getRandomValues method (Browser)
-            if (typeof crypto.getRandomValues === 'function') {
-                try {
-                    return crypto.getRandomValues(new Uint32Array(1))[0];
-                } catch (err) {}
-            }
-
-            // Use randomBytes method (NodeJS)
-            if (typeof crypto.randomBytes === 'function') {
-                try {
-                    return crypto.randomBytes(4).readInt32LE();
-                } catch (err) {}
-            }
-        }
-
-        throw new Error('Native crypto module could not be used to get secure random number.');
+        return generateSecureRandom(4).then(randomBytes => {
+            return new Uint32Array(randomBytes)[0];
+        });
     };
 
     /*
@@ -339,11 +301,11 @@ var CryptoJS = CryptoJS || (function (Math, undefined) {
          *
          *     var wordArray = CryptoJS.lib.WordArray.random(16);
          */
-        random: function (nBytes) {
+        random: async function (nBytes) {
             var words = [];
 
             for (var i = 0; i < nBytes; i += 4) {
-                words.push(cryptoSecureRandomInt());
+                await cryptoSecureRandomInt().then(int => words.push(int));
             }
 
             return new WordArray.init(words, nBytes);
