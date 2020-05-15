@@ -1,6 +1,6 @@
 {
-  "name": "crypto-js",
-  "title": "crypto-js",
+  "name": "dossier-crypto-js",
+  "title": "dossier-crypto-js",
   "description": "JavaScript library of crypto standards.",
   "version": "4.0.0",
   "homepage": "http://github.com/brix/crypto-js",

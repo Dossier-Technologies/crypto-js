@@ -1,17 +1,27 @@
+/*jshint esversion: 8 */
 /*globals window, global, require*/
-import { generateSecureRandom } from 'react-native-securerandom';
 
 /**
  * CryptoJS core components.
  */
 var CryptoJS = CryptoJS || (function (Math, undefined) {
+    var crypto;
+
+    // Native crypto import via require (NodeJS)
+    if (!crypto && typeof require === 'function') {
+        try {
+            crypto = require('react-native-securerandom');
+        } catch (err) {}
+    }
+
     /*
      * Cryptographically secure pseudorandom number generator
      *
      * As Math.random() is cryptographically not safe to use
      */
     var cryptoSecureRandomInt = function () {
-        return generateSecureRandom(4).then(randomBytes => {
+        // We assume we're running in the context of react native.
+        return crypto.generateSecureRandom(4).then(randomBytes => {
             return new Uint32Array(randomBytes)[0];
         });
     };
@@ -303,10 +313,13 @@ var CryptoJS = CryptoJS || (function (Math, undefined) {
          */
         random: async function (nBytes) {
             var words = [];
+            var promises = [];
 
             for (var i = 0; i < nBytes; i += 4) {
-                await cryptoSecureRandomInt().then(int => words.push(int));
+                promises.push(cryptoSecureRandomInt());
             }
+
+            words = await Promise.all(promises);
 
             return new WordArray.init(words, nBytes);
         }
